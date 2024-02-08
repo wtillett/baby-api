@@ -1,7 +1,5 @@
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-
-import uuid
 
 
 Base = declarative_base()
@@ -25,7 +23,9 @@ class Sleep(Base):
     __tablename__ = "sleeps"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(String)
-    start = Column(String)
-    end = Column(String)
-    
+    start = Column(DateTime)
+    end = Column(DateTime)
+    is_finished = Column(Boolean)
+
+    def __repr__(self):
+        return f"Sleep (id={self.id}, start={self.start}, end={self.end}, is_finished={self.is_finished})"

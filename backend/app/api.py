@@ -2,6 +2,8 @@ import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
+from app.routers import bottles
+from app.routers import sleeps
 from schemas import BottleInput
 
 
@@ -10,6 +12,9 @@ from model import models
 
 
 app = FastAPI()
+
+app.include_router(bottles.router)
+app.include_router(sleeps.router)
 
 origins = ["http://localhost:5173", "localhost:5173"]
 
@@ -21,35 +26,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.get("/bottles", tags=["bottles"])
-async def get_bottles() -> dict:
-    db = DBSession()
-    try:
-        bottles = db.query(models.Bottle).all()
-    finally:
-        db.close()
-    return {"data": jsonable_encoder(bottles)}
-
-
-@app.post("/bottle", tags=["bottles"])
-async def add_bottle(bottle: BottleInput) -> dict:
-    db = DBSession()
-
-    now = datetime.datetime.now()
-
-    try:
-        new_bottle = models.Bottle(
-            date=f"{now.month}/{now.day}/{str(now.year)[2:]}",
-            time=now.strftime("%I:%M %p"),
-            amount=bottle.amount,
-        )
-
-        db.add(new_bottle)
-        db.commit()
-        db.refresh(new_bottle)
-    finally:
-        db.close()
-
-    return {"data": jsonable_encoder(new_bottle)}
