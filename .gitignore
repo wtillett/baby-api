@@ -162,3 +162,5 @@ cython_debug/
 .vscode
 seed.py
 feedings.json
+
+db.sql
