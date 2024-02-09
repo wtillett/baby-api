@@ -2,11 +2,11 @@ from datetime import datetime
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 
-from model.database import DBSession
+from sqlalchemy.orm import Session
 
 from model.models import Bottle
 from schemas import BottleInput
-
+from model.database import DBSession
 
 router = APIRouter(prefix="/bottles", tags=["bottles"])
 

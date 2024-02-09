@@ -1,6 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy import insert, select
 from model.models import Sleep
 
 from model.database import DBSession
@@ -34,3 +35,21 @@ async def start_sleep() -> dict:
         db.close()
 
     return {"data": jsonable_encoder(new_sleep)}
+
+
+@router.put("/")
+async def end_sleep():
+    db = DBSession()
+    now = datetime.now()
+
+    try:
+        current_sleep = db.query(Sleep).order_by(Sleep.id.desc()).first()
+        db.query(Sleep).filter(Sleep.id == current_sleep.id).update(
+            {Sleep.end: now, Sleep.is_finished: True}
+        )
+        db.commit()
+        db.refresh(current_sleep)
+    finally:
+        db.close()
+
+    return {"data": jsonable_encoder(current_sleep)}

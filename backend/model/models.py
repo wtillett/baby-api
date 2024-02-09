@@ -25,7 +25,7 @@ class Sleep(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     start = Column(DateTime)
     end = Column(DateTime)
-    is_finished = Column(Boolean)
+    is_finished = Column(Boolean, default=False)
 
     def __repr__(self):
         return f"Sleep (id={self.id}, start={self.start}, end={self.end}, is_finished={self.is_finished})"
