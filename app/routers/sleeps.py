@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import insert, select
 from model.models import Sleep
@@ -44,6 +44,16 @@ async def end_sleep():
 
     try:
         current_sleep = db.query(Sleep).order_by(Sleep.id.desc()).first()
+
+        if current_sleep.is_finished:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "status": "Error 400 - Bad Request",
+                    "msg": "No current active sleep",
+                },
+            )
+
         db.query(Sleep).filter(Sleep.id == current_sleep.id).update(
             {Sleep.end: now, Sleep.is_finished: True}
         )
