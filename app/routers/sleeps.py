@@ -45,6 +45,15 @@ async def end_sleep():
     try:
         current_sleep = db.query(Sleep).order_by(Sleep.id.desc()).first()
 
+        if not current_sleep:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "status": "Error 400 - Bad Request",
+                    "msg": "No sleeps yet",
+                },
+            )
+
         if current_sleep.is_finished:
             raise HTTPException(
                 status_code=400,
