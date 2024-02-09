@@ -10,7 +10,7 @@ from model.database import DBSession
 router = APIRouter(prefix="/sleeps", tags=["sleeps"])
 
 
-@router.get("/")
+@router.get("/all")
 async def get_sleeps() -> dict:
     db = DBSession()
     try:
@@ -18,6 +18,26 @@ async def get_sleeps() -> dict:
     finally:
         db.close()
     return {"data": jsonable_encoder(sleeps)}
+
+
+@router.get("/current")
+async def get_current_sleep() -> dict:
+    db = DBSession()
+
+    try:
+        current_sleep = db.query(Sleep).order_by(Sleep.id.desc()).first()
+
+        if not current_sleep:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "status": "Error 400 - Bad Request",
+                    "msg": "No sleeps yet",
+                },
+            )
+    finally:
+        db.close()
+    return {"data": jsonable_encoder(current_sleep)}
 
 
 @router.post("/")
