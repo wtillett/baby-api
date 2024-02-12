@@ -1,4 +1,5 @@
 from datetime import datetime
+import pytz
 from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import insert, select
@@ -8,6 +9,7 @@ from model.database import DBSession
 
 
 router = APIRouter(prefix="/sleeps", tags=["sleeps"])
+tz = pytz.timezone("America/Los_Angeles")
 
 
 @router.get("/all")
@@ -43,9 +45,19 @@ async def get_current_sleep() -> dict:
 @router.post("/")
 async def start_sleep() -> dict:
     db = DBSession()
-    now = datetime.now()
+    now = datetime.now().astimezone(tz)
 
     try:
+        current_sleep = db.query(Sleep).order_by(Sleep.id.desc()).first()
+
+        if current_sleep and not current_sleep.is_finished:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "status": "Error 400 - Bad Request",
+                    "msg": "There is an active sleep",
+                },
+            )
         new_sleep = Sleep(start=now)
 
         db.add(new_sleep)
@@ -60,7 +72,7 @@ async def start_sleep() -> dict:
 @router.put("/")
 async def end_sleep():
     db = DBSession()
-    now = datetime.now()
+    now = datetime.now().astimezone(tz)
 
     try:
         current_sleep = db.query(Sleep).order_by(Sleep.id.desc()).first()
@@ -92,3 +104,16 @@ async def end_sleep():
         db.close()
 
     return {"data": jsonable_encoder(current_sleep)}
+
+
+@router.delete("/all")
+async def delete_sleeps():
+    db = DBSession()
+
+    try:
+        num_rows_deleted = db.query(Sleep).delete()
+        db.commit()
+    finally:
+        db.close()
+
+    return {"data": {"num_rows_deleted": num_rows_deleted}}
