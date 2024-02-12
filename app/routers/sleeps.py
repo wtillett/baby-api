@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime
 import pytz
 from fastapi import APIRouter, HTTPException
@@ -117,3 +118,30 @@ async def delete_sleeps():
         db.close()
 
     return {"data": {"num_rows_deleted": num_rows_deleted}}
+
+
+@router.delete("/{sleep_id}")
+async def delete_one_sleep(sleep_id: int) -> dict:
+    db = DBSession()
+
+    try:
+        sleep_to_delete = db.query(Sleep).filter(Sleep.id == sleep_id)
+
+        if not sleep_to_delete:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "status": "Error 404 - not found",
+                    "msg": "Sleep with the provided id not found",
+                },
+            )
+
+        deleted_sleep = copy.copy(sleep_to_delete)
+
+        sleep_to_delete.delete()
+
+        db.commit()
+    finally:
+        db.close()
+
+    return {"data": {"msg": "Successfully deleted"}}
